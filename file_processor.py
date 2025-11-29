@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-
+# function to count lines
 def count_lines(filepath):
     """Counts the number of lines in a given text file."""
     try:
@@ -16,6 +16,7 @@ def count_lines(filepath):
         print(f"An unexpected error occurred: {e}")
         return -1
 
+# function to reverse lines
 def reverse_lines(input_filepath, output_filepath):
     """Reads lines from input_filepath, reverses each, and writes to output_filepath."""
     try:
@@ -34,6 +35,8 @@ def reverse_lines(input_filepath, output_filepath):
     except Exception as e:
         print(f"An error occurred during reversal: {e}")
         return False
+
+
 
 if __name__ == "__main__":
     # Example usage
