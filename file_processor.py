@@ -74,6 +74,14 @@ def uppercase_lines(input_filepath, output_filepath):
         print(f"An error occurred: {e}")
         return False
 
+def sum_of_digits(n):
+    n = abs(n)
+    total = 0
+    while n > 0:
+        total += n % 10
+        n //= 10
+    return total
+
 # -----------------------------
 # Example Usage
 # -----------------------------
