@@ -75,13 +75,9 @@ def uppercase_lines(input_filepath, output_filepath):
         return False
 
 def sum_of_digits(n):
-    n = abs(n)
-    total = 0
-    while n > 0:
-        total += n % 10
-        n //= 10
-    return total
+    return sum(int(d) for d in str(abs(n)))
 
+    
 # -----------------------------
 # Example Usage
 # -----------------------------
