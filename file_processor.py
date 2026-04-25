@@ -1,100 +1,124 @@
-import pandas as pd
-import numpy as np
+import os
+import logging
 
 # -----------------------------
-# Original Functions
+# Logger setup
 # -----------------------------
-
-# function to count lines
-def count_lines(filepath):
-    """Counts the number of lines in a given text file."""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            return len(lines)
-    except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
-        return -1
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return -1
-
-# function to reverse lines
-def reverse_lines(input_filepath, output_filepath):
-    """Reads lines from input_filepath, reverses each, and writes to output_filepath."""
-    try:
-        with open(input_filepath, 'r', encoding='utf-8') as infile:
-            lines = infile.readlines()
-        
-        reversed_lines = [line.rstrip("\r\n")[::-1] + '\n' for line in lines]  # Preserve whitespace
-        
-        with open(output_filepath, 'w', encoding='utf-8') as outfile:
-            outfile.writelines(reversed_lines)
-        
-        print(f"Successfully reversed lines from '{input_filepath}' to '{output_filepath}'")
-        return True
-    except FileNotFoundError:
-        print(f"Error: Input file not found at {input_filepath}")
-        return False
-    except Exception as e:
-        print(f"An error occurred during reversal: {e}")
-        return False
+logger = logging.getLogger(__name__)
 
 # -----------------------------
-# New Functions for PR
+# Original Functions (refined)
 # -----------------------------
 
-def count_words(filepath):
-    """Counts the total number of words in a text file."""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return sum(len(line.split()) for line in f)
-    except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
-        return -1
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return -1
+def count_lines(filepath: str) -> int:
+    """Count the number of lines in a given text file.
 
-def uppercase_lines(input_filepath, output_filepath):
-    """Reads lines from input file, converts to uppercase, writes to output file."""
-    try:
-        with open(input_filepath, 'r', encoding='utf-8') as fin:
-            lines = fin.readlines()
+    Returns:
+        int: The number of lines.
 
-        with open(output_filepath, 'w', encoding='utf-8') as fout:
-            fout.writelines(line.upper() for line in lines)
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        OSError: For other I/O related errors.
+    """
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return sum(1 for _ in f)
 
-        print(f"Successfully converted lines to uppercase from '{input_filepath}' to '{output_filepath}'")
-        return True
-    except FileNotFoundError:
-        print(f"Error: Input file not found at {input_filepath}")
-        return False
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return False
 
-def sum_of_digits(n):
-    return sum(int(d) for d in str(abs(n)))
+def reverse_lines(input_filepath: str, output_filepath: str) -> None:
+    """Read lines from input_filepath, reverse each line's content while preserving
+    the original line endings (EOLs), and write to output_filepath.
 
-## Want to check the func of the overall application
+    Preserves per-line EOLs including \"\r\n\", \"\n\", and \"\r\". Processes the file in a streaming manner
+    to minimize memory usage.
+
+    Raises:
+        ValueError: If input_filepath and output_filepath refer to the same file.
+        FileNotFoundError: If the input file does not exist.
+        OSError: For other I/O related errors.
+    """
+    if os.path.abspath(input_filepath) == os.path.abspath(output_filepath):
+        raise ValueError("input_filepath and output_filepath must differ")
+
+    # Use newline='' to preserve original line endings
+    with open(input_filepath, 'r', encoding='utf-8', newline='') as infile, \
+         open(output_filepath, 'w', encoding='utf-8', newline='') as outfile:
+        for line in infile:
+            # Detect EOL
+            if line.endswith("\r\n"):
+                eol = "\r\n"
+                content = line[:-2]
+            elif line.endswith("\n"):
+                eol = "\n"
+                content = line[:-1]
+            elif line.endswith("\r"):
+                eol = "\r"
+                content = line[:-1]
+            else:
+                eol = ""
+                content = line
+            outfile.write(content[::-1] + eol)
+
+
+# -----------------------------
+# New Functions for PR (refined)
+# -----------------------------
+
+def count_words(filepath: str) -> int:
+    """Count the total number of words in a text file.
+
+    Returns:
+        int: The total number of whitespace-delimited words in the file.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        OSError: For other I/O related errors.
+    """
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return sum(len(line.split()) for line in f)
+
+
+def uppercase_lines(input_filepath: str, output_filepath: str) -> None:
+    """Read lines from input file, convert to uppercase, and write to output file.
+
+    Processes the file in a streaming manner and preserves existing line endings
+    by using newline='' on both read and write.
+
+    Raises:
+        ValueError: If input_filepath and output_filepath refer to the same file.
+        FileNotFoundError: If the input file does not exist.
+        OSError: For other I/O related errors.
+    """
+    if os.path.abspath(input_filepath) == os.path.abspath(output_filepath):
+        raise ValueError("input_filepath and output_filepath must differ")
+
+    with open(input_filepath, 'r', encoding='utf-8', newline='') as fin, \
+         open(output_filepath, 'w', encoding='utf-8', newline='') as fout:
+        for line in fin:
+            fout.write(line.upper())
 
 
 # -----------------------------
 # Example Usage
 # -----------------------------
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
     test_file = "sample.txt"
     reversed_file = "reversed_sample.txt"
     uppercase_file = "uppercase_sample.txt"
 
     # Create a sample file for testing
-    with open(test_file, 'w', encoding='utf-8') as f:
+    with open(test_file, 'w', encoding='utf-8', newline='') as f:
         f.write("Hello World\n")
-        f.write("Python is fun\n")
-        f.write("Master Thesis\n")
+        f.write("Python is fun\r\n")
+        f.write("Master Thesis")
 
-    print(f"Lines in '{test_file}': {count_lines(test_file)}")
-    print(f"Words in '{test_file}': {count_words(test_file)}")
-    reverse_lines(test_file, reversed_file)
-    uppercase_lines(test_file, uppercase_file)
+    try:
+        print(f"Lines in '{test_file}': {count_lines(test_file)}")
+        print(f"Words in '{test_file}': {count_words(test_file)}")
+        reverse_lines(test_file, reversed_file)
+        uppercase_lines(test_file, uppercase_file)
+        print(f"Successfully reversed lines to '{reversed_file}'")
+        print(f"Successfully uppercased lines to '{uppercase_file}'")
+    except Exception as e:
+        logger.error(f"An error occurred during processing: {e}")
